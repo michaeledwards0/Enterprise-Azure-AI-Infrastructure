@@ -2,9 +2,9 @@
 
 ## Building the Zero Trust Identity Layer for AI Workload Access
 
-**Duration:** ~2-3 hours
-**Prerequisites:** Azure tenant active, Entra ID P2 license confirmed, $50 budget alert configured
-**Focus Areas:** Identity, Access Management, Zero Trust
+**Duration:** ~3-4 hours  
+**Prerequisites:** Azure tenant active, Entra ID P2 license confirmed, $50 budget alert configured  
+**Focus Areas:** Identity, Access Management, Zero Trust, Foundational Governance
 
 ---
 
@@ -12,13 +12,14 @@
 
 In Zero Trust architecture, identity is the perimeter. Before any resources exist, before the AI service is deployed, before a single line of code runs — the identity layer must be established with least-privilege access, strong authentication, and just-in-time elevation.
 
-This phase demonstrates the identity architecture that would protect a real production AI workload from the two most common attack paths: **compromised credentials** and **privilege escalation**.
+This phase demonstrates the identity architecture that would protect a real production AI workload from the two most common attack paths: **compromised credentials** and **privilege escalation**. It also establishes the first governance guardrails via Azure Policy — because policy that isn't enforced isn't policy.
 
 **By the end of this phase, you will have:**
 - A production-grade identity structure with role-based groups
 - A properly configured break-glass emergency access account
 - Conditional Access policies enforcing MFA, geographic restrictions, and legacy authentication blocks
 - Privileged Identity Management (PIM) configured for just-in-time admin elevation
+- Baseline Azure Policy assignments enforcing governance guardrails
 - All controls documented with screenshots for the case study
 
 ---
@@ -320,9 +321,69 @@ Identity Protection uses Microsoft's threat intelligence to detect risky sign-in
 
 ---
 
-## Section 8: Testing & Validation
+## Section 8: Establish Governance Baseline with Azure Policy
 
-### 8.1 — Test as Emma User
+Identity controls prevent unauthorized *people* from acting. Azure Policy prevents even authorized people from creating *misconfigured resources*. We'll assign three foundational policies now — they'll be enforced across every phase that follows.
+
+### 8.1 — Why This Matters
+
+A common attack pattern is not "hacker breaks in" — it's "authorized admin makes a mistake and exposes a resource to the public internet." Azure Policy is the guardrail that stops those mistakes before they become breaches. In real cloud security roles, policy authoring is a core responsibility.
+
+### 8.2 — Assign Built-In Policy: Storage Accounts Should Restrict Network Access
+
+Prevents any storage account (which our AI workload will use) from being publicly exposed.
+
+1. Azure Portal → search **"Policy"** → click it
+2. Left sidebar → **Definitions**
+3. Search: `Storage accounts should restrict network access`
+4. Click the policy definition
+5. Click **Assign**
+6. **Scope:** Your subscription
+7. **Basics:**
+   - **Assignment name:** `Deny Public Storage Accounts`
+   - **Policy enforcement:** **Enabled**
+8. **Parameters:**
+   - **Effect:** `Deny`
+9. Click **Review + create** → **Create**
+
+### 8.3 — Assign Built-In Policy: Managed Identity Should Be Used in Your Web App
+
+Enforces that resources use managed identities instead of stored credentials.
+
+1. Definitions → search: `Managed identity should be used in your web app`
+2. Click the policy → **Assign**
+3. **Scope:** Your subscription
+4. **Assignment name:** `Require Managed Identity`
+5. **Parameters → Effect:** `AuditIfNotExists` (start with audit to see impact)
+6. Click **Review + create** → **Create**
+
+> **Why start with Audit:** Deny mode could break legitimate deployments while you're still learning. Audit surfaces violations without blocking, then you can flip to Deny once confident.
+
+### 8.4 — Assign Built-In Policy: Public Network Access Should Be Disabled for Cognitive Services
+
+Directly protects your future Azure OpenAI deployment.
+
+1. Definitions → search: `Public network access should be disabled for Cognitive Services`
+2. Click the policy → **Assign**
+3. **Scope:** Your subscription
+4. **Assignment name:** `Deny Public Access on Cognitive Services`
+5. **Parameters → Effect:** `Deny`
+6. Click **Review + create** → **Create**
+
+### 8.5 — Verify Policy Assignments
+
+1. Policy → **Assignments**
+2. Confirm all three policies appear with correct scope
+3. Wait 15-30 minutes for initial compliance scan to complete
+4. Navigate to **Compliance** → your subscription should show initial compliance state
+
+📸 **Screenshot to capture:** Policy Assignments page showing all three assigned policies. Save as `screenshots/phase-01/08-azure-policy-baseline.png`.
+
+---
+
+## Section 9: Testing & Validation
+
+### 9.1 — Test as Emma User
 
 1. Open a private browser window
 2. Go to **[portal.azure.com](https://portal.azure.com)**
@@ -331,14 +392,14 @@ Identity Protection uses Microsoft's threat intelligence to detect risky sign-in
 5. Complete MFA setup with your phone
 6. Sign in successfully
 
-### 8.2 — Review Conditional Access Insights
+### 9.2 — Review Conditional Access Insights
 
 1. Back in your admin session
 2. Entra portal → **Protection** → **Conditional Access** → **Insights and reporting**
 3. Review the report-only impact — you should see the MFA policy would have applied to Emma's sign-in
 4. This confirms the policy is working correctly
 
-### 8.3 — Turn On Report-Only Policies
+### 9.3 — Turn On Report-Only Policies
 
 Now that testing confirms the policies work:
 
@@ -348,7 +409,7 @@ Now that testing confirms the policies work:
 4. Save
 5. Do the same for **CA04 — Require Sign-In Every 4 Hours for AI Admins**
 
-📸 **Screenshot to capture:** Insights and reporting dashboard showing policy application. Save as `screenshots/phase-01/08-testing-validation.png`.
+📸 **Screenshot to capture:** Insights and reporting dashboard showing policy application. Save as `screenshots/phase-01/09-testing-validation.png`.
 
 ---
 
@@ -362,6 +423,8 @@ Now that testing confirms the policies work:
 - [ ] Four Conditional Access policies created and tested
 - [ ] PIM configured with just-in-time elevation for Sarah Admin
 - [ ] Identity Protection policies enabled (user risk + sign-in risk)
+- [ ] Three Azure Policy baseline assignments configured
+- [ ] Policy compliance scan completed (initial state captured)
 - [ ] Test sign-in as Emma User completed successfully
 - [ ] All screenshots captured and saved to `screenshots/phase-01/`
 
@@ -372,10 +435,10 @@ Now that testing confirms the policies work:
 *This section belongs at the end of the Phase 1 doc after execution. Write it once complete.*
 
 ### Objective
-Establish the Zero Trust identity layer for the Contoso AI Labs environment before any AI workloads are deployed, following the principle that identity is the primary security perimeter in cloud architectures.
+Establish the Zero Trust identity layer and governance baseline for the Contoso AI Labs environment before any AI workloads are deployed, following the principle that identity is the primary security perimeter in cloud architectures — and that policy enforcement is what keeps that perimeter intact over time.
 
 ### Approach
-[Describe your reasoning for the group structure, why break-glass matters, why report-only mode was used first, and how PIM enables least-privilege operations.]
+[Describe your reasoning for the group structure, why break-glass matters, why report-only mode was used first, how PIM enables least-privilege operations, and why policy-as-guardrails matters at the identity layer.]
 
 ### Controls Implemented
 - Role-based access control via three security groups
@@ -384,11 +447,13 @@ Establish the Zero Trust identity layer for the Contoso AI Labs environment befo
 - Geographic access restrictions blocking known high-risk regions
 - Just-in-time privileged access via PIM with approval workflow
 - Risk-based Conditional Access via Identity Protection
+- Azure Policy guardrails preventing common misconfigurations at creation time
 
 ### Frameworks Applied
 - NIST 800-207 (Zero Trust Architecture)
 - CIS Microsoft Azure Foundations Benchmark v2.0 — Section 1 (Identity and Access Management)
 - Microsoft Cloud Adoption Framework — Security Baseline for Identity
+- Microsoft Cloud Adoption Framework — Governance disciplines
 
 ### Lessons Learned
 [Fill in after execution — what surprised you, what took longer than expected, what would you do differently in a real environment.]

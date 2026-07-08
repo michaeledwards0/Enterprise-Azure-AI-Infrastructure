@@ -372,7 +372,7 @@ Prevents any storage account (which our AI workload will use) from being publicl
    - **Effect:** `Deny`
 9. Click **Review + create** → **Create**
 
-### 8.3 — Assign Built-In Policy: Managed Identity Should Be Used in Your Web App
+### 8.3 — Assign Built-In Policy: App Service apps should use managed identity
 
 Enforces that resources use managed identities instead of stored credentials.
 
@@ -385,11 +385,11 @@ Enforces that resources use managed identities instead of stored credentials.
 
 > **Why start with Audit:** Deny mode could break legitimate deployments while you're still learning. Audit surfaces violations without blocking, then you can flip to Deny once confident.
 
-### 8.4 — Assign Built-In Policy: Public Network Access Should Be Disabled for Cognitive Services
+### 8.4 — Assign Built-In Policy: Azure AI Services resources should restrict network access
 
 Directly protects your future Azure OpenAI deployment.
 
-1. Definitions → search: `Public network access should be disabled for Cognitive Services`
+1. Definitions → search: `Azure AI Services resources should restrict network access`
 2. Click the policy → **Assign**
 3. **Scope:** Your subscription
 4. **Assignment name:** `Deny Public Access on Cognitive Services`

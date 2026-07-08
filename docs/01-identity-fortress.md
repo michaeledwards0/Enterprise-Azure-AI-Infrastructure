@@ -61,7 +61,9 @@ Create each of the following, one at a time. Use these exact settings for each:
 - **Membership type:** Assigned
 - Click **Create**
 
-<img width="975" height="444" alt="image" src="https://github.com/user-attachments/assets/ee2bf97f-fd0b-4edf-bca8-0cb980626f72" />
+<img width="1391" height="401" alt="image" src="https://github.com/user-attachments/assets/8bce38ef-3870-4d8c-98f3-bc021d16159b" />
+
+
 
 
 ---

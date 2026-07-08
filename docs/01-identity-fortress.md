@@ -61,7 +61,8 @@ Create each of the following, one at a time. Use these exact settings for each:
 - **Membership type:** Assigned
 - Click **Create**
 
-📸 **Screenshot to capture:** The Groups page showing all three groups created. Save as `screenshots/phase-01/01-groups-created.png`.
+<img width="975" height="444" alt="image" src="https://github.com/user-attachments/assets/ee2bf97f-fd0b-4edf-bca8-0cb980626f72" />
+
 
 ---
 
@@ -108,7 +109,8 @@ Create three test users mapping to each group. These simulate the identity types
 - **Add group:** `AI-Users`
 - Click **Create**
 
-📸 **Screenshot to capture:** The Users page showing all three test users. Save as `screenshots/phase-01/02-users-created.png`.
+<img width="975" height="422" alt="image" src="https://github.com/user-attachments/assets/69ce47db-e61d-45c7-a216-6f3c5ff2d35c" />
+
 
 ---
 
@@ -144,7 +146,8 @@ In a real environment, this account would be:
 
 We'll set up the Sentinel monitoring alert in Phase 5.
 
-📸 **Screenshot to capture:** The break-glass user's details page showing Global Administrator role assigned. Save as `screenshots/phase-01/03-break-glass-created.png`.
+<img width="975" height="635" alt="image" src="https://github.com/user-attachments/assets/a8fcc378-58cc-45ee-aa56-61a81eae0fc6" />
+.
 
 ---
 
@@ -173,7 +176,8 @@ Named locations let Conditional Access make decisions based on where a sign-in o
    - Belarus
 4. Click **Create**
 
-📸 **Screenshot to capture:** Named locations page showing both locations. Save as `screenshots/phase-01/04-named-locations.png`.
+<img width="975" height="491" alt="image" src="https://github.com/user-attachments/assets/fd505103-06e0-44b5-be1c-6f39e4b816a9" />
+
 
 ---
 
@@ -246,7 +250,7 @@ Admin accounts should re-authenticate more often than regular users.
 6. **Enable policy:** **Report-only**
 7. Click **Create**
 
-📸 **Screenshot to capture:** Conditional Access Policies page showing all four policies. Save as `screenshots/phase-01/05-conditional-access-policies.png`.
+<img width="975" height="524" alt="image" src="https://github.com/user-attachments/assets/bc5041c7-2fc7-4035-b4e9-64769045f576" />
 
 ---
 
@@ -290,7 +294,8 @@ PIM enables just-in-time (JIT) elevation for admin roles. Instead of users being
 
 Click **Update**
 
-📸 **Screenshot to capture:** PIM Assignments page showing Sarah as eligible for Global Reader. Save as `screenshots/phase-01/06-pim-configured.png`.
+<img width="975" height="558" alt="image" src="https://github.com/user-attachments/assets/47fcc024-55b4-4a7b-a938-9ab46653b343" />
+
 
 ---
 
@@ -343,7 +348,8 @@ Microsoft has deprecated the standalone Identity Protection risk policies UI —
 2. Entra portal → **Conditional Access** → **Insights and reporting** → confirm CA05 and CA06 show expected report-only matches
 3. Flip both **CA05** and **CA06** from **Report-only** to **On**
 
-📸 **Screenshot to capture:** Conditional Access Policies page showing CA05 and CA06 alongside CA01–CA04. Save as `screenshots/phase-01/07-risk-based-ca-policies.png`.
+<img width="975" height="647" alt="image" src="https://github.com/user-attachments/assets/5f630b88-62a6-4e61-a8b5-abcfc0e9e865" />
+
 
 ---
 
@@ -403,7 +409,8 @@ Directly protects your future Azure OpenAI deployment.
 3. Wait 15-30 minutes for initial compliance scan to complete
 4. Navigate to **Compliance** → your subscription should show initial compliance state
 
-📸 **Screenshot to capture:** Policy Assignments page showing all three assigned policies. Save as `screenshots/phase-01/08-azure-policy-baseline.png`.
+<img width="975" height="542" alt="image" src="https://github.com/user-attachments/assets/dafeff47-1577-4b1c-b027-92815632c459" />
+
 
 ---
 
@@ -444,7 +451,8 @@ Now that testing confirms the policies work:
 4. Save
 5. Do the same for **CA04 — Require Sign-In Every 4 Hours for AI Admins**
 
-📸 **Screenshot to capture:** Insights and reporting dashboard showing policy application. Save as `screenshots/phase-01/09-testing-validation.png`.
+<img width="975" height="173" alt="image" src="https://github.com/user-attachments/assets/78b75c36-52f5-4a9e-8443-450655a53e0f" />
+
 
 ---
 

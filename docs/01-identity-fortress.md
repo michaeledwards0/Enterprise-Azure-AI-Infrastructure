@@ -301,7 +301,7 @@ Identity Protection uses Microsoft's threat intelligence to detect risky sign-in
 ### 7.1 — Configure User Risk Policy
 
 1. Entra portal → **Security** → **Protect** → **ID Protection**
-2. Click **User risk policy** (or navigate under Policies)
+2. Click **Protect** → **User risk policy** (or navigate under Policies)
 3. **Users:** All users, exclude `Break Glass Emergency Access`
 4. **Conditions:** User risk: **High**
 5. **Access:** Allow access, require password change

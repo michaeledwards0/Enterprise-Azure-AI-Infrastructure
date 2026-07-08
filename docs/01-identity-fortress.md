@@ -2,9 +2,7 @@
 
 ## Building the Zero Trust Identity Layer for AI Workload Access
 
-**Duration:** ~3-4 hours  
-**Prerequisites:** Azure tenant active, Entra ID P2 license confirmed, $50 budget alert configured  
-**Focus Areas:** Identity, Access Management, Zero Trust, Foundational Governance
+**Focus Areas:** Identity, Access Management, Zero Trust, Foundational Governancec
 
 ---
 

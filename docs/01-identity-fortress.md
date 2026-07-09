@@ -80,7 +80,7 @@ In Phase 2 we'll build the network layer that will house the AI workload — hub
 ---
 
 <details>
-<summary><strong>📋 Full Execution Guide (click to expand)</strong> — step-by-step build instructions and completion checklist</summary>
+<summary><strong> Full Execution Guide (click to expand)</strong> — step-by-step build instructions and completion checklist</summary>
 
 <br>
 

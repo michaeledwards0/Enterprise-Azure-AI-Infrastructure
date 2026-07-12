@@ -80,7 +80,7 @@ With the workload deployed, Phase 4 layers Defender for Cloud workload protectio
 
 <br>
 
-**Prerequisites:** Phase 1 and Phase 2 complete, `snet-private-endpoints` subnet and the `privatelink.openai.azure.com` DNS zone already exist. The Key Vault's DNS zone (`privatelink.vaultcore.azure.net`) is created during this phase, not Phase 2.
+**Prerequisites:** Phase 1 and Phase 2 complete, `snet-private-endpoints` subnet already exists. Both DNS zones required for this phase's private endpoints — `privatelink.vaultcore.azure.net` for Key Vault and `privatelink.cognitiveservices.azure.com` for Azure AI services — are created inline during Sections 1 and 2 below, alongside the private endpoints that need them.
 
 ### Section 1: Deploy the Key Vault
 
@@ -96,7 +96,7 @@ With the workload deployed, Phase 4 layers Defender for Cloud workload protectio
    - **Target sub-resource:** `vault`
    - **Virtual network:** `vnet-spoke-ai`
    - **Subnet:** `snet-private-endpoints`
-   - **Private DNS integration:** enable it. Unlike the AI service, no DNS zone was pre-created for Key Vault in Phase 2 — the correct zone name is **`privatelink.vaultcore.azure.net`**, and the portal will offer to auto-create and link it to `vnet-spoke-ai` as part of this step. Let it.
+   - **Private DNS integration:** enable it. The correct zone name for Key Vault is **`privatelink.vaultcore.azure.net`**, and the portal will offer to auto-create and link it to `vnet-spoke-ai` as part of this step. Let it.
    - **OK** to add the private endpoint, then continue back on the Key Vault creation wizard
 4. **Review + create** → **Create**
 
@@ -104,13 +104,22 @@ With the workload deployed, Phase 4 layers Defender for Cloud workload protectio
 
 ### Section 2: Deploy the Azure AI Services Resource
 
-1. Azure Portal → search **Azure AI services** → **+ Create** → select **Azure OpenAI**
+1. Azure Portal → search **Azure AI services** → **+ Create**
 2. **Basics:**
    - Resource group: `rg-secure-ai-prod`
    - Name: `ai-contoso-openai`
    - Region: an Azure OpenAI-supported region matching your prior phase region where possible
    - Pricing tier: Standard S0
-3. **Network tab:** Select **Disabled** for public network access; configure private endpoint in `snet-private-endpoints`, using the `privatelink.openai.azure.com` zone from Phase 2 for the DNS zone group
+3. **Network tab:**
+   - Type: **Disabled** (no public/selected-network access)
+   - Under **Private endpoint**, click **+ Add Private Endpoint** and configure:
+     - **Name:** `pe-aiservices-contoso-ai`
+     - **Target sub-resource:** `account` (this is the correct sub-resource for the unified Azure AI services resource type — not `openai`)
+     - **Virtual network:** `vnet-spoke-ai`
+     - **Subnet:** `snet-private-endpoints`
+     - **Integrate with private DNS zone:** Yes
+     - **Private DNS Zone:** accept the auto-suggested **`(New) cognitiveservices`** zone (creates and links `privatelink.cognitiveservices.azure.com` to `vnet-spoke-ai`)
+   - **OK**, then continue back on the Azure AI services creation wizard
 4. **Identity tab:** Enable **System-assigned managed identity**
 5. **Encryption tab:** Select **Customer-managed keys**, point to `kv-contoso-ai`, and grant the resource's managed identity **Key Vault Crypto Service Encryption User** on the vault
 6. Review + create

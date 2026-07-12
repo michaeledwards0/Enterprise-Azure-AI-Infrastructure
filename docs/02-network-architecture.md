@@ -59,11 +59,11 @@ A centralized Azure Firewall was seriously considered for the hub, since it's th
 | NSGs configured | All three NSGs created and associated to their respective subnets | ![NSGs](https://github.com/user-attachments/assets/9fe7da23-68c0-43e9-890d-f265c498b38d) |
 | NSG flow logs enabled | Flow logging active across all three NSGs, writing to dedicated storage | ![Flow logs](https://github.com/user-attachments/assets/219c4443-2b7b-4fa3-b08f-23b98260cd99) |
 | Azure Bastion deployed | Bastion host running in the hub, providing zero-public-IP administrative access | ![Bastion](https://github.com/user-attachments/assets/ebb5c4ef-ac1e-4035-b1f4-c2669e73ffcc) |
-| Private DNS zone established | `privatelink.openai.azure.com` created and linked to the spoke VNet, staged for Phase 3 | ![Private DNS zone](https://github.com/user-attachments/assets/86f0deee-79f1-41e4-963a-239ada16441b) |
+| Private DNS zone established | `privatelink.openai.azure.com` created and linked to the spoke VNet in preparation for Phase 3 — later found to be the wrong zone name for the unified Azure AI services resource type used in Phase 3 (see Lessons Learned) | ![Private DNS zone](https://github.com/user-attachments/assets/86f0deee-79f1-41e4-963a-239ada16441b) |
 | Deny public IP policy | Policy assignment denying public IP creation at the resource group, with a durable name-based exclusion for Bastion | ![Policy](https://github.com/user-attachments/assets/a43d70eb-141d-40c0-8f10-eb663211bccc) |
 
 ### Lessons Learned
-*[Fill in after execution.]*
+*[Fill in after execution — the CIDR overlap incident is a strong candidate here, alongside anything discovered during Bastion/NSG testing. Also worth including: the `privatelink.openai.azure.com` zone built in this phase turned out to be the wrong zone name once Phase 3's Azure AI services private endpoint was actually created — the unified Azure AI services resource type requires `privatelink.cognitiveservices.azure.com` instead, a naming difference from the older dedicated Azure OpenAI resource type. The correct zone was created directly during Phase 3's private endpoint setup instead.]*
 
 ---
 
@@ -110,6 +110,7 @@ Decide this before creating anything — resizing VNets after resources exist is
      - `snet-shared-services` → `10.0.1.0/24` (subnet purpose: **Default**)
 4. **Review + create** → **Create**
 
+📸 **Screenshot to capture:** Hub VNet overview showing both subnets.
 
 ### Section 2: Create the Spoke VNet
 
@@ -125,6 +126,7 @@ Decide this before creating anything — resizing VNets after resources exist is
      - `snet-private-endpoints` → `10.1.1.0/24`
 4. **Review + create** → **Create**
 
+📸 **Screenshot to capture:** Spoke VNet overview showing both subnets.
 
 ### Section 3: Peer the Hub and Spoke
 
@@ -138,7 +140,7 @@ Peering must be configured from both sides — each VNet needs its own peering r
 2. **Add** — this creates both peering resources in one step
 3. Confirm both show **Connected** status (may take a minute)
 
-
+📸 **Screenshot to capture:** Peerings page showing "Connected" status on both sides.
 
 ### Section 4: Configure Network Security Groups
 
@@ -170,6 +172,7 @@ Build one NSG per subnet, each default-deny with only explicit, necessary allow 
 
 > **Note:** `AzureBastionSubnet` has its own Microsoft-managed requirements for NSG rules (specific inbound rules for the Bastion control plane on ports 443, 4443, and outbound rules for session traffic). If you attach an NSG to this subnet, follow Microsoft's current published Bastion NSG requirements exactly — misconfiguring this one can break Bastion entirely.
 
+📸 **Screenshot to capture:** Network Security Groups list showing all three NSGs with their associated subnets.
 
 ### Section 5: Enable NSG Flow Logs
 
@@ -194,7 +197,7 @@ Flow logs record what traffic each NSG actually allowed or denied — the differ
    - **Review + create** → **Create**
 3. Once created, spot-check by opening one of the three NSGs directly → **Settings** → look for a **Flow logs** entry confirming it's active, rather than just trusting the subnet appeared in the picker
 
-
+📸 **Screenshot to capture:** NSG flow logs configuration page showing all three subnets enabled.
 
 > **Callback to Phase 5:** once the Log Analytics workspace exists, return here and enable **Traffic Analytics** on this same flow log configuration, pointing at that workspace — this upgrades raw flow log storage into queryable, visualized traffic data alongside the Sentinel detections built in that phase.
 
@@ -213,20 +216,21 @@ Flow logs record what traffic each NSG actually allowed or denied — the differ
 
 > Bastion bills continuously with no pause state — see the Approach section above for the deploy/delete cost discipline used across this project.
 
-
+📸 **Screenshot to capture:** Bastion resource overview showing Running status.
 
 ### Section 7: Establish Private DNS Zone Groundwork
 
 Private endpoints (used starting Phase 3) require a Private DNS Zone to resolve correctly. Creating it now means Phase 3 can move straight to deployment.
 
 1. Azure Portal → search **Private DNS zones** → **+ Create**
-2. Name: `privatelink.openai.azure.com` (the standard zone name for Azure OpenAI/Cognitive Services private endpoints)
+2. Name: `privatelink.cognitiveservices.azure.com` (the zone name Azure's unified "Azure AI services" creation flow auto-suggests for this resource kind — note this differs from the older dedicated "Azure OpenAI" resource type, which uses `privatelink.openai.azure.com`; the unified flow used in Phase 3 requires the cognitiveservices zone)
 3. Resource group: `rg-secure-ai-prod`
 4. **Review + create** → **Create**
 5. Link the zone to the spoke VNet: zone → **Virtual network links** → **+ Add** → link to `vnet-spoke-ai`, disable auto-registration
 
 > Note: only VNets explicitly linked to this zone resolve the private endpoint's hostname privately — peering alone does not extend this resolution. `vnet-hub` is not linked here, since nothing in the hub currently needs private access to the AI service.
 
+📸 **Screenshot to capture:** Private DNS zone showing the virtual network link to `vnet-spoke-ai`.
 
 ### Section 8: Assign Azure Policy — Deny Public IP Creation
 
@@ -239,7 +243,7 @@ Extends Phase 1's governance baseline to the network layer.
 3. Under **Exclusions**, add the Bastion public IP's full resource path (`<subscription>/rg-secure-ai-prod/pip-bastion`) — this is a name-based path, not an internal object ID, so recreating the IP under the identical name will continue matching this exclusion in future sessions without needing to update the policy again
 4. **Review + create** → **Create**
 
-
+📸 **Screenshot to capture:** Policy assignment confirming the deny-public-IP rule scoped to the resource group, including the exclusion.
 
 ### Section 9: Testing & Validation
 
@@ -257,7 +261,7 @@ Once a VM exists in `snet-ai-workload` (Phase 3+), use **Network Watcher** → *
 **9.4 — Test Bastion Connectivity**
 Once a test VM exists in the spoke (can be deferred to Phase 3 if no VM exists yet): VM → **Connect** → **Bastion** → confirm browser-based session opens with no public IP required on the VM itself.
 
-
+📸 **Screenshot to capture:** Flow log container contents (once available), plus effective security rules view or a successful Bastion session (whichever is available at this stage).
 
 ### Completion Checklist
 
@@ -268,7 +272,7 @@ Once a test VM exists in the spoke (can be deferred to Phase 3 if no VM exists y
 - [ ] AzureBastionSubnet NSG (if used) follows Microsoft's current Bastion requirements
 - [ ] NSG flow logs enabled on all three NSGs, storing to the flow logs storage account
 - [ ] Azure Bastion deployed and running in the hub
-- [ ] Private DNS zone for `privatelink.openai.azure.com` created and linked to the spoke VNet
+- [ ] Private DNS zone for `privatelink.cognitiveservices.azure.com` created and linked to the spoke VNet
 - [ ] Azure Policy denying public IP creation assigned to the resource group, with a durable name-based exclusion for Bastion
 - [ ] Peering connectivity verified from both sides
 - [ ] Flow log storage confirmed capturing data (once traffic exists)

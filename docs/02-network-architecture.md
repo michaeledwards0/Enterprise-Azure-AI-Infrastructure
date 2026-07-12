@@ -1,60 +1,59 @@
 <div align="center">
+Phase 2: Network Architecture & Isolation
 
-# Phase 2: Network Architecture & Isolation
-### Hub-Spoke Network Foundation for the AI Workload — Contoso AI Labs
+Hub-Spoke Network Foundation for the AI Workload — Contoso AI Labs
 
 </div>
 
----
+Overview
 
-## Overview
+With identity established in Phase 1, Phase 2 builds the network layer that will house the AI workload: a hub-spoke VNet topology with no public network exposure, administrative access exclusively through Azure Bastion, NSGs enforcing default-deny at every subnet boundary, and flow logs providing traffic observability from the moment the network exists.
 
-With identity established in Phase 1, Phase 2 builds the network layer that will house the AI workload. This phase implements a **hub-spoke topology** — the standard Microsoft Cloud Adoption Framework pattern for isolating workloads while centralizing shared security services (bastion access now, additional shared services later) in one place.
+Environment: Personal Azure tenant (contosoailabs.onmicrosoft.com) | Duration: ~2-3 hours | Standard: SC-500 blueprint, CIS Azure Foundations Benchmark v2.0 — Network Security
 
-By the end of this phase, the AI workload will have no public network exposure: administrative access happens exclusively through Azure Bastion (no public IPs on any VM), traffic between tiers is restricted by NSGs at every subnet boundary, and every subnet's traffic is logged for observability. The network is peered but segmented — the spoke can be isolated from the hub without rebuilding anything, and the hub can support additional spokes later without touching this one.
 
-**Environment:** Personal Azure tenant (`contosoailabs.onmicrosoft.com`) | **Duration:** ~2-3 hours | **Standard:** SC-500 blueprint, CIS Azure Foundations Benchmark v2.0 — Network Security
+Case Study
 
-### Design Rationale
+Objective
 
-**Why hub-spoke instead of a single flat VNet:** A flat network means any compromised resource can potentially reach any other resource. Hub-spoke enforces segmentation by design — the hub holds shared services (Bastion now, potentially a firewall or additional shared tooling later), while the spoke holds the actual AI workload resources. Peering is explicit and one-to-one, not transitive, so a future second spoke can't reach this one without a deliberate peering decision.
-
-**Why one spoke, not several:** This environment has a single workload — the AI service being built in Phase 3 — so a single spoke is the correct scope, not a simplification of it. The value of hub-spoke isn't the number of spokes; it's that the hub/spoke boundary exists at all. A second spoke (for example, a future data platform workload) could peer into the same hub without any change to this one, which is the actual point of the pattern. Building a second spoke with nothing to put in it would add complexity without a second workload to justify it.
-
-**Why Azure Bastion instead of public IPs + RDP/SSH:** Public IPs on VMs are a top scanning target — internet-wide port scanners find exposed RDP/SSH within minutes. Bastion provides browser-based access to VMs over TLS through the Azure portal, with no public IP ever assigned to the VM itself and no inbound ports opened on the VM's NSG.
-
-**Why NSGs at every subnet, not just the perimeter:** This is defense in depth applied to networking — sometimes called micro-segmentation. If one subnet is compromised, NSGs at each subnet boundary limit lateral movement to adjacent subnets rather than the entire VNet being flat and trusted.
-
-**Why NSG flow logs, deployed now:** A network with no traffic visibility is only as trustworthy as its rules are correct — if an NSG rule is misconfigured, flow logs are what surfaces that instead of the mistake going unnoticed. Enabling flow logs in this phase, rather than waiting for Phase 5's Sentinel workspace, means network-layer observability exists from the moment the network itself exists, rather than leaving a gap between when the network is built and when it's actually being watched.
-
-**Why Azure Firewall was evaluated and deliberately not deployed:** A centralized network firewall (for egress filtering, threat intelligence feeds, and forced tunneling) is the natural next step in a hub-spoke design and was seriously considered for this phase. It was scoped out specifically because of cost structure, not lack of awareness: Azure Firewall bills a fixed hourly fee for every hour it's deployed — starting around $0.395/hr on the Basic tier (roughly $288/month if left running continuously) — regardless of whether it processes any traffic, which doesn't fit a $50/month lab budget as an always-on resource. In a production environment with a real budget, this would be the next control added to this hub.
-
-> **Cost note — Azure Bastion has no pause state.** Unlike a VM, Bastion has no reliable "stopped/deallocated" state — it bills continuously from creation until deletion, regardless of tier. The practical approach for a lab budget: leave Bastion running during an active work session (a few hours costs well under $1 at Basic tier's ~$0.19/hr), then delete the `bas-hub` resource when done for the session, and recreate it next time. Deleting Bastion doesn't affect the VNet, subnets, or NSGs it depends on — only the Bastion host and its public IP need to be recreated. If a Deny-Public-IP policy exclusion is scoped by resource path (subscription/resource group/resource name) rather than an internal object ID, recreating the public IP under the identical name (`pip-bastion`) in the same resource group will continue matching the existing exclusion automatically — no policy changes needed between sessions.
-
----
-
-## Case Study
-
-### Objective
 Build a segmented, least-exposure, and observable network foundation for the Contoso AI Labs environment prior to deploying any AI workload resources, ensuring no compute or service in this environment is reachable from the public internet, that administrative access requires no open inbound ports, and that traffic across every subnet boundary is logged.
 
-### Approach
-*[Fill in after execution — describe your reasoning for subnet sizing, why Bastion was chosen over alternatives, how the NSG rules map to least privilege, and any tradeoffs you made between the CIDR plan and future phase needs.]*
+Approach
 
-### Controls Implemented
-- Hub-spoke VNet topology with explicit, non-transitive peering
-- Dedicated subnets for Bastion, shared services, and workload resources — no shared/general-purpose subnet
-- Network Security Groups applied at every subnet boundary, default-deny with explicit allow rules
-- NSG flow logs enabled across all three NSGs for network traffic observability, staged for Traffic Analytics once the Phase 5 Log Analytics workspace exists
-- Azure Bastion for zero-public-IP administrative access, operated on a deploy/delete cost discipline given its continuous billing model
-- Azure Policy assignment denying public IP creation across the subscription, with a name-based exclusion for the Bastion public IP
-- DNS zone groundwork for private endpoints (used starting Phase 3, when Azure OpenAI and Key Vault are deployed)
-- Single-spoke design deliberately scoped to the current workload, with the hub structured to support additional spokes without modification
+The network follows a hub-spoke topology rather than a single flat VNet, because a flat network means any compromised resource can potentially reach any other resource. The hub holds shared services — Azure Bastion today, potentially additional shared tooling or a firewall later — while the spoke holds only the AI workload itself. Peering between them is explicit and one-to-one, not transitive, so a future second spoke could connect into the same hub without any change to this one. This environment currently has a single workload, so a single spoke is the correct scope rather than a simplification of it — the value of hub-spoke isn't the number of spokes, it's that the boundary exists at all.
 
-### Frameworks Applied
-- Microsoft Cloud Adoption Framework — Hub-Spoke Network Topology
-- CIS Microsoft Azure Foundations Benchmark v2.0 — Section 6 (Networking)
-- NIST 800-207 (Zero Trust Architecture) — network micro-segmentation principle
+Subnet sizing followed the general pattern of allocating more address space at the VNet level and narrower ranges at the subnet level, sized to each subnet's actual purpose rather than uniformly. AzureBastionSubnet is fixed at a /26 minimum by Microsoft's own requirement for the service — not a security choice I made — while snet-shared-services was sized with headroom for future shared tooling that doesn't exist yet. On the spoke side, snet-private-endpoints was deliberately sized larger than the two resources landing there in Phase 3 (Key Vault and Azure AI services), since private endpoints tend to accumulate as more services are added over time.
+
+The importance of a proper CIDR plan showed up directly during execution, not just in theory: the spoke VNet was initially created on the same 10.0.0.0/16 range as the hub, and Azure rejected the peering attempt with an explicit address-overlap error. This was a useful real-world confirmation of why non-overlapping address spaces are a hard requirement for peering, not just a best practice — two VNets can't be peered if Azure can't distinguish their address ranges from one another. The spoke was corrected to 10.1.0.0/16 before proceeding, and every subnet beneath it was resized to fit inside that corrected range.
+
+Azure Bastion was chosen over exposing RDP/SSH directly, because it allows administrative access to VMs within the network without ever opening those ports to the internet — authentication happens through the Azure portal, and the actual RDP/SSH session originates from inside the hub, not from a public source. Both snet-ai-workload and snet-shared-services allow inbound traffic from the Bastion subnet specifically, since Bastion is a shared jump host for the entire environment and doesn't know in advance which subnet will need administrative access on a given day; each destination subnet still enforces its own default-deny posture and only trusts that one narrow source.
+
+The NSG rules map directly to least privilege: every subnet starts fully denied by default, and only the specific inbound traffic required is explicitly allowed — Bastion-sourced administrative access on the compute subnets, or VNet-internal traffic only for the private endpoints subnet. Nothing is permitted by default; everything permitted was a deliberate, individually justified addition. Flow logs were enabled on all three NSGs at this stage, rather than waiting for Phase 5's Sentinel workspace, so that traffic visibility exists from the moment the network itself exists — a misconfigured rule is far more useful to catch through logged traffic than to discover later during an incident.
+
+A centralized Azure Firewall was seriously considered for the hub, since it's the natural next step for egress filtering and threat intelligence-based blocking in a hub-spoke design, but it was deliberately scoped out for this phase due to cost structure rather than lack of awareness: Azure Firewall bills a fixed hourly fee for every hour it's deployed — starting around $0.395/hr on the Basic tier, roughly $288/month if left running continuously — regardless of whether it processes any traffic, which doesn't fit a $50/month lab budget as an always-on resource. Azure Bastion carries a similar always-on billing model with no pause state, which was managed operationally instead: leaving it running during active work sessions and deleting the resource between sessions, since a Deny-Public-IP policy exclusion scoped by resource path rather than an internal object ID allows the same public IP name to be recreated repeatedly without needing to update the policy each time.
+
+Controls Implemented
+
+
+Hub-spoke VNet topology with explicit, non-transitive peering
+Dedicated subnets for Bastion, shared services, and workload resources — no shared/general-purpose subnet
+Network Security Groups applied at every subnet boundary, default-deny with explicit allow rules
+NSG flow logs enabled across all three NSGs for network traffic observability, staged for Traffic Analytics once the Phase 5 Log Analytics workspace exists
+Azure Bastion for zero-public-IP administrative access, operated on a deploy/delete cost discipline given its continuous billing model
+Azure Policy assignment denying public IP creation across the subscription, with a name-based exclusion for the Bastion public IP
+DNS zone groundwork for private endpoints (used starting Phase 3, when Azure OpenAI and Key Vault are deployed)
+Single-spoke design deliberately scoped to the current workload, with the hub structured to support additional spokes without modification
+
+
+Frameworks Applied
+
+
+Microsoft Cloud Adoption Framework — Hub-Spoke Network Topology
+CIS Microsoft Azure Foundations Benchmark v2.0 — Section 6 (Networking)
+NIST 800-207 (Zero Trust Architecture) — network micro-segmentation principle
+
+
+
 
 ### Evidence
 

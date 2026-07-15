@@ -7,7 +7,6 @@
 *A Zero Trust reference implementation demonstrating how to design, deploy, defend, govern, and codify a production-grade AI workload on Microsoft Azure.*
 
 **Environment:** Personal Azure Tenant
-**Duration:** 6 Weeks  
 **Author:** Michael Edwards — Cloud Security Engineer
 
 </div>

@@ -11,7 +11,7 @@
 
 This runbook documents the implementation steps used to establish Phase 1 identity, privileged-access, Conditional Access, emergency-access, and Azure governance controls.
 
-Use the accompanying [Phase 1 portfolio case study](../01-identity-fortress.md) for the executive summary, architecture, engineering decisions, results, and lessons learned.
+Use the accompanying [Phase 1 Portfolio Case Study](../01-identity-fortress.md) for the executive summary, architecture, engineering decisions, results, and lessons learned.
 
 ---
 

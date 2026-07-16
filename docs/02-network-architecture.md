@@ -242,7 +242,7 @@ Azure Firewall was considered but intentionally omitted because its fixed hourly
 
 ## Repository Navigation
 
-- **Detailed implementation:** [Phase 2 Runbook](../runbooks/02-network-architecture-runbook.md)
+- **Detailed implementation:** [Phase 2 Runbook](./runbooks/02-network-architecture-runbook.md)
 - **Previous phase:** [Phase 1 — Identity Fortress](./01-identity-fortress.md)
 - **Next phase:** [Phase 3 — Azure AI Services Deployment](./03-openai-deployment.md)
 - **Project overview:** [Secure AI Deployment on Azure](../README.md)

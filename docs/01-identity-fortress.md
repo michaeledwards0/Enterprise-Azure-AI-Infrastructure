@@ -1,327 +1,188 @@
 <div align="center">
 
 # Phase 1: Identity Fortress
-### Zero Trust Identity Layer for AI Workload Access — Contoso AI Labs
+### Zero Trust Identity and Governance Foundation for Secure AI Workloads
+
+**Contoso AI Labs | Microsoft Azure | Zero Trust | Identity Governance**
 
 </div>
 
 ---
 
-## Overview
+## Executive Summary
 
-Before any AI workload existed in this environment, the identity layer had to be established — in Zero Trust architecture, identity is the perimeter. This phase builds role-based access control, a monitored break-glass account, Conditional Access (including risk-based policies), just-in-time privileged access via PIM, and a governance baseline via Azure Policy — defending against the two most common identity attack paths: **compromised credentials** and **privilege escalation**.
+Before deploying any AI workload, I established the identity and governance controls that determine **who can access the environment, under what conditions, and with what level of privilege**.
 
-**Environment:** Personal Azure tenant | **Duration:** ~3-4 hours | **Standard:** SC-500 blueprint, NIST 800-207 (Zero Trust)
+This phase implemented role-based security groups, Conditional Access, risk-based controls, Privileged Identity Management (PIM), a monitored emergency-access account, Azure Policy, and Management Group inheritance. The resulting environment reduces exposure to compromised credentials, standing administrative privilege, legacy authentication, risky sign-ins, and resource misconfiguration.
+
+> **Outcome:** A Zero Trust identity perimeter and governance baseline were implemented and validated before any production-style AI resource was deployed.
 
 ---
 
-## Case Study
+## Project Snapshot
 
-### Objective
-Establish the Zero Trust identity layer and governance baseline for the Contoso AI Labs environment before any AI workloads are deployed, following the principle that identity is the primary security perimeter in cloud architectures — and that policy enforcement is what keeps that perimeter intact over time.
+| Category | Details |
+|---|---|
+| **Platform** | Microsoft Azure and Microsoft Entra ID |
+| **Environment** | Personal Azure tenant |
+| **Primary focus** | Identity security, least privilege, Conditional Access, privileged access, governance |
+| **Key services** | Microsoft Entra ID, Conditional Access, Identity Protection, PIM, Azure Policy, Management Groups |
+| **Threats addressed** | Compromised credentials, privilege escalation, password spraying, risky sign-ins, configuration drift |
+| **Framework alignment** | NIST 800-207, CIS Microsoft Azure Foundations, Microsoft Cloud Adoption Framework |
+| **Validation** | Sign-in-log review, policy enforcement checks, PIM validation, policy inheritance confirmation |
 
-### Approach
-User groups were structured around job function (Admin, Developer, End User) to enforce least privilege from the start — each role only has the access its function requires. A break-glass account was configured as a Global Admin fallback for emergencies, excluded from all Conditional Access policies so it always works if other authentication paths fail, and monitored for any sign-in activity since usage outside a true emergency should be treated as a serious alert.
+---
 
-Conditional Access policies were tested in report-only mode before enforcement. This validated that each policy would apply to the correct users and sign-ins without risking a lockout, flipping to enforced only after confirming expected behavior in the sign-in logs.
+## Security Challenge
 
-PIM was applied to the AI-Admins group to enable just-in-time access instead of standing privilege. Rather than holding an admin role permanently, eligible users activate it only when needed, for a limited window, with MFA and approval required. This directly reduces the blast radius of the two attack paths above — a compromised account with no standing privilege has nothing to steal.
+The AI workload did not yet exist, but the access model had to be designed first. Deploying infrastructure before identity controls would have created an environment where permissions, emergency access, privileged roles, and governance were added reactively instead of being built into the foundation.
 
-Risk-based Conditional Access (CA05, CA06) was built directly into the Conditional Access engine rather than through the legacy Identity Protection risk policies UI, which Microsoft is retiring in October 2026. This keeps every access decision — MFA, location, and risk — in a single policy surface instead of two systems that could drift out of sync, and allows report-only validation the legacy interface doesn't support.
+The two primary risks addressed were **compromised credentials** and **privilege escalation**. The design therefore needed to enforce least privilege, reduce standing administrative access, block weaker authentication paths, evaluate sign-in risk, preserve emergency access, and prevent authorized users from creating insecure resources.
 
-Azure Policy was assigned last in this phase to make the distinction between identity and governance explicit: identity controls (Conditional Access, PIM) stop unauthorized people from getting in, while Azure Policy stops authorized people from making costly configuration mistakes — like exposing a storage account to the public internet. Neither layer substitutes for the other.
+---
 
-A Management Group was introduced above the subscription specifically to demonstrate policy inheritance. This lab runs in a single subscription, so a Management Group isn't structurally necessary here — but in a real organization with separate Dev/Test/Prod subscriptions, policies assigned at the Management Group level inherit down to every subscription beneath it automatically, rather than being reassigned per subscription. Building it here, even with only one subscription underneath, shows the pattern the same way it would need to work at enterprise scale.
+## Solution Architecture
 
-### Controls Implemented
-- Role-based access control via three security groups (AI-Admins, AI-Developers, AI-Users)
-- MFA enforcement for all users except break-glass
-- Legacy authentication blocked (eliminates a common password-spray attack vector)
-- Geographic access restrictions blocking known high-risk regions
-- Just-in-time privileged access via PIM with approval workflow
-- Risk-based Conditional Access policies (CA05, CA06), built ahead of the legacy Identity Protection risk policies' October 2026 retirement
-- Azure Policy guardrails preventing common misconfigurations at resource creation time
-- Management Group established above the subscription, with governance policy reassigned at that scope to demonstrate inheritance patterns used in multi-subscription environments
+```mermaid
+flowchart TD
+    U[Users and Test Identities] --> G[Role-Based Security Groups]
+    G --> CA[Conditional Access Policies]
+    CA --> MFA[MFA and Authentication Controls]
+    CA --> RISK[User and Sign-In Risk Evaluation]
+    G --> PIM[Privileged Identity Management]
+    PIM --> JIT[Just-in-Time Role Activation]
+    BG[Break-Glass Account] --> EX[Excluded from Conditional Access]
+    EX --> MON[Monitored for Any Sign-In]
+    MG[Management Group] --> SUB[Azure Subscription]
+    MG --> POL[Inherited Azure Policy]
+    POL --> GUARD[Governance Guardrails]
+```
 
-### Frameworks Applied
-- NIST 800-207 (Zero Trust Architecture)
-- CIS Microsoft Azure Foundations Benchmark v2.0 — Section 1 (Identity and Access Management)
-- Microsoft Cloud Adoption Framework — Security Baseline for Identity
-- Microsoft Cloud Adoption Framework — Governance disciplines
+---
 
-### Evidence
+## What I Implemented
+
+### Identity Structure
+
+| Group | Purpose |
+|---|---|
+| **AI-Admins** | Administrative access to the AI environment, with privileged access controlled through PIM |
+| **AI-Developers** | Deployment, configuration, and testing responsibilities |
+| **AI-Users** | Approved consumption of AI services without administrative permissions |
+
+Test identities were assigned to the appropriate groups so that future access decisions could be managed through group membership rather than direct user-by-user assignments.
+
+### Conditional Access
+
+| Policy | Control |
+|---|---|
+| **CA01** | Require MFA for all users except the emergency-access account |
+| **CA02** | Block legacy authentication |
+| **CA03** | Block sign-ins from selected high-risk countries |
+| **CA04** | Require more frequent sign-in for administrators |
+| **CA05** | Require remediation for high user risk |
+| **CA06** | Require MFA for medium- and high-risk sign-ins |
+
+Policies were evaluated in **report-only mode** where appropriate, then moved to enforcement after sign-in logs confirmed expected behavior.
+
+### Privileged Access
+
+PIM was used to make the administrative test identity **eligible** for Global Reader rather than permanently assigned. Activation required MFA, approval, justification, ticket information, and a four-hour activation window.
+
+### Emergency Access
+
+A dedicated break-glass account was created with Global Administrator access and excluded from Conditional Access so tenant recovery remains possible if normal authentication controls fail. The credential was stored offline, the account was excluded from daily administration, and any sign-in was designated for high-priority monitoring in Phase 5.
+
+### Governance Baseline
+
+Azure Policy was used to prevent or identify insecure resource configurations. The initial baseline covered managed identity use, Azure AI Services network access, and storage-account network access. A Management Group was added above the subscription, with one policy assigned at that scope to prove inheritance.
+
+---
+
+## Key Engineering Decisions and Tradeoffs
+
+| Decision | Rationale | Tradeoff |
+|---|---|---|
+| Build identity before infrastructure | Access should be designed before resources are deployed | More setup before visible workload deployment |
+| Use groups instead of direct assignments | Improves scalability, consistency, and access reviews | Requires disciplined group governance |
+| Test Conditional Access in report-only mode | Reduces lockout risk and validates scope | Delays enforcement until evidence is reviewed |
+| Use PIM for privileged access | Reduces standing privilege and blast radius | Adds activation and approval overhead |
+| Exclude the break-glass account | Preserves emergency tenant access | Requires strong offline protection and monitoring |
+| Assign policy at Management Group scope | Demonstrates enterprise inheritance patterns | Structurally unnecessary for a single-subscription lab |
+| Begin selected policies in Audit mode | Reveals impact before blocking deployment | Provides visibility rather than immediate prevention |
+
+---
+
+## Results and Validation
+
+| Result | Validation |
+|---|---|
+| Function-based identity model established | Three security groups and three test users mapped to distinct job functions |
+| MFA enforcement validated | Test sign-in confirmed Conditional Access success and MFA enforcement |
+| Legacy authentication blocked | CA02 removed a common password-spray path |
+| Risk-aware controls created | Separate user-risk and sign-in-risk policies were implemented |
+| Standing privilege reduced | Administrative test identity was made PIM-eligible instead of permanently privileged |
+| Emergency access preserved | Dedicated break-glass account created and excluded from Conditional Access |
+| Governance controls enforced | Azure Policy assignments confirmed at subscription and Management Group scopes |
+| Policy inheritance proven | Management Group policy appeared in the subscription compliance view without duplicate assignment |
+| Report-only controls enforced | CA01 and CA04 were validated through sign-in logs and enabled |
+
+---
+
+## Evidence
 
 | Control | What it proves | Screenshot |
 |---|---|---|
-| Role-based groups | Three groups created mapping to distinct job functions, establishing least privilege before any user is provisioned | ![Groups](https://github.com/user-attachments/assets/8bce38ef-3870-4d8c-98f3-bc021d16159b) |
-| Test identities | Three test users provisioned and assigned to their respective groups | ![Users](https://github.com/user-attachments/assets/14715a4f-9437-40c5-b83f-d0a068e75c1f) |
-| Break-glass account | Emergency access account configured with Global Administrator role, excluded from all Conditional Access | ![Break-glass](https://github.com/user-attachments/assets/c2d7204f-0beb-4866-8e24-c8e8d8d25a98) |
-| Named locations | Trusted and high-risk country lists defined for use in Conditional Access location conditions | ![Named locations](https://github.com/user-attachments/assets/26962d18-a958-4e50-977d-d6015842c72a) |
-| Core Conditional Access policies | CA01–CA04 enforcing MFA, blocking legacy auth, blocking high-risk geographies, and requiring frequent re-auth for admins | ![CA policies](https://github.com/user-attachments/assets/efe01727-7e8a-40e1-bf22-412f0a59a2c4) |
-| Just-in-time access | Sarah Admin configured as eligible (not permanently assigned) for Global Reader via PIM | ![PIM](https://github.com/user-attachments/assets/b74bb234-08e3-43d4-bffd-f604273fea1e) |
-| Risk-based Conditional Access | CA05/CA06 built directly in Conditional Access, ahead of the legacy Identity Protection UI's retirement | ![Risk-based CA](https://github.com/user-attachments/assets/5a375f37-5a56-4ed7-b36e-6406697a2be3) |
-| Governance baseline (Subscripton Scope) | Three Azure Policy assignments enforced across the subscription, protecting against public exposure and enforcing managed identity use | ![Policy baseline](https://github.com/user-attachments/assets/ec9e90d2-a110-4fa6-a798-a26f067b9a1b) |
-| Management group created | `mg-contoso-ai-labs` created and subscription moved under it, demonstrating the hierarchy pattern used in real multi-subscription environments | ![Management group](https://github.com/user-attachments/assets/a6c461c1-8107-48a6-a4aa-821190df1656) |
-| Policy inheritance confirmed | Storage policy assigned only at the Management Group level, confirmed present on the subscription's compliance view without a duplicate subscription-scope assignment — proving inheritance | ![Policy inheritance](https://github.com/user-attachments/assets/458f0e49-09ff-4b20-b3f6-4a05433981a6) |
-| Enforcement confirmed live | CA01 and CA04 flipped from report-only to enforced, validated against real sign-in log results | ![Policy enforced](https://github.com/user-attachments/assets/1fcceb6f-e039-414d-83b9-5be1e612295c) |
-
-### Lessons Learned
-Privileged Identity Management proved essential for protecting against two of the most common identity attack paths: privilege escalation and compromised credentials. By requiring just-in-time activation instead of standing access, there's no permanent admin session sitting idle for an attacker to hijack.
-
-Establishing security groups and role-based access control early was foundational to building a least-privilege environment — every subsequent decision, from Conditional Access scoping to PIM eligibility, depended on having clean, function-based groups already in place.
-
-Policy isn't policy unless it's enforced. A control that exists only as a written rule or a report-only log entry provides visibility, not protection — the value only materializes once it's actively blocking or requiring action.
-
-Identity controls and governance policy solve two different problems: identity controls stop unauthorized people from getting in, while Azure Policy stops authorized people from making costly mistakes. Both are necessary, and neither is a substitute for the other.
+| Role-based groups | Three groups map to distinct job functions | ![Groups](https://github.com/user-attachments/assets/8bce38ef-3870-4d8c-98f3-bc021d16159b) |
+| Test identities | Users were provisioned and assigned by role | ![Users](https://github.com/user-attachments/assets/14715a4f-9437-40c5-b83f-d0a068e75c1f) |
+| Break-glass account | Emergency-access identity was configured separately | ![Break-glass](https://github.com/user-attachments/assets/c2d7204f-0beb-4866-8e24-c8e8d8d25a98) |
+| Named locations | Trusted and blocked locations were defined | ![Named locations](https://github.com/user-attachments/assets/26962d18-a958-4e50-977d-d6015842c72a) |
+| Core CA policies | MFA, legacy-authentication, geography, and admin-session controls were created | ![CA policies](https://github.com/user-attachments/assets/efe01727-7e8a-40e1-bf22-412f0a59a2c4) |
+| PIM | Privileged access was implemented as an eligible assignment | ![PIM](https://github.com/user-attachments/assets/b74bb234-08e3-43d4-bffd-f604273fea1e) |
+| Risk-based CA | User-risk and sign-in-risk controls were separated | ![Risk-based CA](https://github.com/user-attachments/assets/5a375f37-5a56-4ed7-b36e-6406697a2be3) |
+| Policy baseline | Initial Azure Policy assignments were applied | ![Policy baseline](https://github.com/user-attachments/assets/ec9e90d2-a110-4fa6-a798-a26f067b9a1b) |
+| Management Group | Governance hierarchy was introduced | ![Management group](https://github.com/user-attachments/assets/a6c461c1-8107-48a6-a4aa-821190df1656) |
+| Policy inheritance | Management Group policy inherited to the subscription | ![Policy inheritance](https://github.com/user-attachments/assets/458f0e49-09ff-4b20-b3f6-4a05433981a6) |
+| Enforcement | Report-only controls were validated and enabled | ![Policy enforced](https://github.com/user-attachments/assets/1fcceb6f-e039-414d-83b9-5be1e612295c) |
 
 ---
 
-## Next Phase
+## Framework Mapping
 
-➡️ **[Phase 2: Network Architecture & Isolation](./02-network-architecture.md)**
-
-In Phase 2 we'll build the network layer that will house the AI workload — hub-spoke topology, private endpoints, NSGs, and Azure Bastion for admin access.
+| Framework | Application |
+|---|---|
+| **NIST 800-207 Zero Trust** | Verify explicitly, use least privilege, and assume credentials may be compromised |
+| **CIS Microsoft Azure Foundations** | MFA, privileged-access controls, legacy-authentication blocking, and identity governance |
+| **Microsoft Cloud Adoption Framework** | Identity baseline, governance hierarchy, policy inheritance, and separation of duties |
 
 ---
 
-<details>
-<summary><strong>📋 Full Execution Guide (click to expand)</strong> — step-by-step build instructions and completion checklist</summary>
+## Lessons Learned
 
-<br>
+### Standing privilege is a design risk
+PIM demonstrated that privileged access does not need to be permanently active. Time-bound eligibility reduces the impact of a compromised account while preserving administrative capability.
 
-**Duration:** ~3-4 hours
-**Prerequisites:** Azure tenant active, Entra ID P2 license confirmed, $50 budget alert configured
+### Report-only is part of safe deployment
+A technically correct Conditional Access policy can still lock out legitimate users if scoped incorrectly. Testing against sign-in logs before enforcement is part of the implementation process.
 
-### Section 1: Create Identity Groups
+### Identity and governance solve different problems
+Conditional Access and PIM determine whether a person should be allowed to act. Azure Policy determines whether the action or resulting configuration is permitted.
 
-We'll build role-based groups that map to real job functions in an AI-consuming organization.
+### Enterprise patterns can be demonstrated at lab scale
+The Management Group was unnecessary for one subscription, but it demonstrated how policies can inherit across Dev, Test, and Production subscriptions.
 
-**1.1 — Navigate to Groups**
-1. Sign in to [entra.microsoft.com](https://entra.microsoft.com) with your admin account
-2. Left sidebar → **Groups** → **All groups**
-3. Click **+ New group**
+---
 
-**1.2 — Create Three Groups**
+## Repository Navigation
 
-**Group A: AI-Admins**
-- Group type: Security | Membership type: Assigned
-- Description: `Full administrative access to AI workload — PIM required for activation`
-
-**Group B: AI-Developers**
-- Group type: Security | Membership type: Assigned
-- Description: `Read/write access to AI resources — deploy, configure, and test`
-
-**Group C: AI-Users**
-- Group type: Security | Membership type: Assigned
-- Description: `End-user access to consume AI services via approved interfaces only`
-
-### Section 2: Create Test Users
-
-**2.1 — Navigate to Users:** Left sidebar → **Users** → **All users** → **+ New user** → **Create new user**
-
-**2.2 — User A: AI Admin**
-- UPN: `sarah.admin@memanagementconsultingllc.onmicrosoft.com` | Display name: `Sarah Admin (Test)`
-- Job title: `Cloud Security Engineer` | Department: `Security` | Group: `AI-Admins`
-
-**2.3 — User B: AI Developer**
-- UPN: `david.dev@memanagementconsultingllc.onmicrosoft.com` | Display name: `David Dev (Test)`
-- Job title: `AI Engineer` | Department: `Engineering` | Group: `AI-Developers`
-
-**2.4 — User C: AI End User**
-- UPN: `emma.user@memanagementconsultingllc.onmicrosoft.com` | Display name: `Emma User (Test)`
-- Job title: `Business Analyst` | Department: `Operations` | Group: `AI-Users`
-
-### Section 3: Configure the Break-Glass Account
-
-Break-glass accounts are emergency access accounts used only when all other authentication methods fail. They must be excluded from Conditional Access, protected with a strong offline-stored password, monitored for any usage, and never used for daily work.
-
-**3.1 — Create the Account**
-- UPN: `breakglass@memanagementconsultingllc.onmicrosoft.com` | Display name: `Break Glass Emergency Access`
-- Password: 20+ characters, stored in a physical vault or offline password manager — not your regular manager
-- Job title: `Emergency Access — Do Not Use`
-- Assign role: **Global Administrator**
-
-**3.2 — Document Break-Glass Handling**
-In a real environment: password split between two people (dual custody), stored in a physical safe, monitored via a Sentinel alert on any sign-in, tested twice a year. Sentinel monitoring is configured in Phase 5.
-
-### Section 4: Configure Named Locations
-
-**4.1 — Trusted Location (United States)**
-1. Entra portal → **Security** → **Protect** → **Conditional Access** → **Manage** → **Named locations**
-2. **+ Countries location** → Name: `Trusted Countries — United States` → Countries: United States → Create
-
-**4.2 — Blocked Location**
-1. **+ Countries location** → Name: `Blocked Countries — High Risk`
-2. Countries: North Korea, Iran, Russia, China, Belarus → Create
-
-### Section 5: Build Conditional Access Policies
-
-**5.1 — CA01: Require MFA for All Users**
-- Users: Include All users, Exclude Break Glass Emergency Access
-- Target resources: All cloud apps
-- Grant: Require multifactor authentication
-- State: **Report-only** initially (prevents lockout during setup, flip to On after testing)
-
-**5.2 — CA02: Block Legacy Authentication**
-- Users: Include All users, Exclude Break Glass Emergency Access
-- Conditions: Client apps → uncheck Modern authentication clients, keep Exchange ActiveSync + Other clients
-- Grant: Block access | State: **On**
-
-**5.3 — CA03: Block Sign-Ins from Blocked Countries**
-- Users: Include All users, Exclude Break Glass Emergency Access
-- Conditions: Locations → Include `Blocked Countries — High Risk`
-- Grant: Block access | State: **On**
-
-**5.4 — CA04: Require Sign-In Every 4 Hours for AI Admins**
-- Users: Include `AI-Admins`
-- Session: Sign-in frequency → 4 hours
-- State: **Report-only** initially
-
-### Section 6: Configure Privileged Identity Management (PIM)
-
-**6.1 — Enable PIM for AI-Admins**
-1. Entra portal → **Identity governance** → **Privileged Identity Management** → **Microsoft Entra roles** → **Assignments** → **+ Add assignments**
-2. Role: **Global Reader** (used instead of Global Admin to reduce risk while learning PIM)
-3. Member: `Sarah Admin (Test)` → Assignment type: **Eligible** → Duration: Permanently eligible
-
-**6.2 — Configure PIM Role Settings**
-- Activation max duration: 4 hours
-- Require: MFA on activation, justification, ticket information, approval to activate
-- Approver: yourself
-- Eligible assignments expire after 3 months
-- Notifications on: assignment and activation
-
-### Section 7: Configure Risk-Based Conditional Access Policies
-
-Microsoft is retiring the standalone Identity Protection risk policies UI on **October 1, 2026**. Risk conditions are built directly into Conditional Access instead — a single policy surface with report-only testing support the legacy UI lacks. Don't combine user risk and sign-in risk conditions in the same policy; build them separately.
-
-**7.1 — CA05: Require Risk Remediation for High User Risk**
-- Users: Include All users, Exclude Break Glass Emergency Access
-- Target resources: All resources
-- Conditions: User risk → High
-- Grant: Require risk remediation → Authentication strength: Multifactor authentication
-- Session: Sign-in frequency → Every time (mandatory for risk policies)
-- State: **Report-only** initially
-
-**7.2 — CA06: Require MFA for Medium/High Sign-In Risk**
-- Users: Include All users, Exclude Break Glass Emergency Access
-- Conditions: Sign-in risk → High and Medium
-- Grant: Authentication strength → Multifactor authentication
-- Session: Sign-in frequency → Every time
-- State: **Report-only** initially
-
-**7.3 — Validate, Then Enforce**
-Let both run in report-only, confirm expected matches in sign-in logs, then flip both to **On**.
-
-## Section 8: Establish a Governance Baseline with Azure Policy
-
-Identity controls prevent unauthorized *people* from acting. Azure Policy prevents even authorized people from creating *misconfigured resources*. We'll assign two foundational policies now at subscription scope — and hold a third back deliberately, to demonstrate Management Group-level inheritance later in this section.
-
-### 8.1 — Why This Matters
-
-A common attack pattern is not "hacker breaks in" — it's "authorized admin makes a mistake and exposes a resource to the public internet." Azure Policy is the guardrail that stops those mistakes before they become breaches. In real cloud security roles, policy authoring is a core responsibility.
-
-### 8.2 — Assign Built-In Policy: App Service Apps Should Use Managed Identity
-
-Enforces that resources use managed identities instead of stored credentials.
-
-1. Azure Portal → search **"Policy"** → click it
-2. Left sidebar → **Authoring** → **Definitions**
-3. Search: `App Service apps should use managed identity`
-4. Click the policy → **Assign**
-5. **Scope:** Your subscription
-6. **Assignment name:** `Require Managed Identity`
-7. **Parameters → Effect:** `AuditIfNotExists` (start with audit to see impact)
-8. Click **Review + create** → **Create**
-
-> **Why start with Audit:** Deny mode could break legitimate deployments while you're still learning. Audit surfaces violations without blocking, then you can flip to Deny once confident.
-
-### 8.3 — Assign Built-In Policy: Azure AI Services Resources Should Restrict Network Access
-
-Directly protects your future Azure OpenAI deployment.
-
-1. Definitions → search: `Azure AI Services resources should restrict network access`
-2. Click the policy → **Assign**
-3. **Scope:** Your subscription
-4. **Assignment name:** `Deny Public Access on Azure AI Services`
-5. **Parameters → Effect:** `Deny`
-6. Click **Review + create** → **Create**
-
-### 8.4 — Verify Policy Assignments
-
-1. Policy → **Assignments**
-2. Confirm both policies appear with correct scope
-3. Wait 15-30 minutes for initial compliance scan to complete
-4. Navigate to **Compliance** → your subscription should show initial compliance state
-
-### 8.5 — Establish a Management Group and Demonstrate Policy Inheritance
-
-This lab runs in a single subscription, so a Management Group isn't structurally required — but building one demonstrates the pattern used in real multi-subscription environments, where a policy is assigned once at the Management Group level and inherits automatically to every subscription beneath it. Rather than duplicating a policy already assigned at subscription scope, this section assigns **"Storage accounts should restrict network access"** — held back from Section 8.2 specifically for this purpose — at the Management Group level instead, to cleanly demonstrate inheritance without redundant enforcement.
-
-1. Azure Portal → search **Management groups** → **+ Add management group**
-2. **Management group ID:** `mg-contoso-ai-labs`
-3. **Management group display name:** `Contoso AI Labs`
-4. Click **Save**
-5. Go to **Tenant root group** (or wherever your management group hierarchy starts) → find `mg-contoso-ai-labs` → click **+ Add subscription**
-6. Select your subscription → **Save** to move it under the new management group
-
-**Assign the held-back policy at the Management Group level:**
-
-7. Policy → **Definitions** → search: `Storage accounts should restrict network access`
-8. Click the policy → **Assign**
-9. **Scope:** `mg-contoso-ai-labs` (the Management Group, not the subscription)
-10. **Assignment name:** `Deny Public Storage Accounts`
-11. **Parameters → Effect:** `Deny`
-12. Click **Review + create** → **Create**
-
-**Verify inheritance:**
-
-13. Navigate to your subscription's **Policy → Compliance** page
-14. Confirm the storage policy now appears here too — even though it was never assigned directly at the subscription — proving it inherited down from the Management Group
-
-
-### 8.6 — Verify Full Policy Assignments
-
-1. Policy → **Assignments**, filtered to show **all scopes** (subscription and management group)
-2. Confirm three total policies are visible: two at subscription scope (Sections 8.2–8.3) and one inherited from Management Group scope (Section 8.5)
-
-
-### Section 9: Testing & Validation
-
-**9.1 — Test as Emma User**
-Sign in as `emma.user@...` in a private browser window; MFA prompt should appear (or report-only log entry created).
-
-**9.2 — Review Sign-In Logs**
-> The Insights and reporting workbook requires a Log Analytics workspace (built in Phase 5) — it will 401 until then regardless of role. Use **Sign-in logs** instead.
-
-Entra portal → **Monitoring** → **Sign-in logs** → find Emma's sign-in → open the **Conditional Access** tab to see policy results. Confirm **Authentication requirement: Multifactor authentication** and **Conditional Access: Success** (not `reportOnlySuccess`) to verify active enforcement, not just report-only logging.
-
-**9.3 — Turn On Report-Only Policies**
-Conditional Access → Policies → change CA01 and CA04 from Report-only to **On** → Save.
-
-### Completion Checklist
-
-- [ ] Three security groups created (AI-Admins, AI-Developers, AI-Users)
-- [ ] Three test users created and assigned to groups
-- [ ] Break-glass emergency access account configured with Global Admin role
-- [ ] Break-glass password stored offline
-- [ ] Two named locations created (Trusted US, Blocked High-Risk Countries)
-- [ ] Four Conditional Access policies created and tested (CA01–CA04)
-- [ ] PIM configured with just-in-time elevation for Sarah Admin
-- [ ] CA05 and CA06 risk-based Conditional Access policies created and enforced
-- [ ] Two Azure Policy baseline assignments configured 
-- [ ] Management Group (`mg-contoso-ai-labs`) created with subscription nested underneath
-- [ ] One governance policy assigned at the Management Group level and confirmed inherited via Compliance view
-- [ ] Policy compliance scan completed
-- [ ] Test sign-in as Emma User completed successfully
-- [ ] All screenshots captured
-
-</details>
+- **Detailed implementation:** [Phase 1 Runbook](./runbooks/01-identity-fortress-runbook.md)
+- **Next phase:** [Phase 2 — Network Architecture & Isolation](./02-network-architecture.md)
+- **Project overview:** [Secure AI Deployment on Azure](../README.md)
 
 ---
 
 <div align="center">
 
-[← Back to Project Overview](../README.md)
+**Phase 1 complete — identity became the first security boundary of the environment.**
 
 </div>

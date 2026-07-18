@@ -270,10 +270,9 @@ Auditors and governance reviewers need visibility, not modification rights. A Re
 
 ## Related Documentation
 
-- [Phase 3 Portfolio Case Study](./03-openai-deployment.md)
-- [Phase 2 — Network Architecture & Isolation](./02-network-architecture.md)
+- [Previous Phase 3 Portfolio Case Study](./03-openai-deployment.md)
 - [Phase 4 Runbook](./runbooks/04-governance-defender-runbook.md)
-- [Phase 5 — Detection Engineering](./05-detection-engineering.md)
+- [Next Phase 5 — Detection Engineering](./05-detection-engineering.md)
 - [Project Overview](../README.md)
 
 ---

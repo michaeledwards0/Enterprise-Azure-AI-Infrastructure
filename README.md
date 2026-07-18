@@ -57,7 +57,7 @@ This repository documents the full engagement — from policy authoring through 
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│                DETECTION & RESPONSE LAYER                       │
+│               MONITORING, DETECTION & RESPONSE LAYER            │
 │    Microsoft Sentinel · Custom Analytics Rules · Playbooks      │
 └──────────────────────────┬──────────────────────────────────────┘
                            │

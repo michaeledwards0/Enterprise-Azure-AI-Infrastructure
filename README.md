@@ -1,6 +1,6 @@
 <div align="center">
 
-# Secure AI Deployment on Azure
+# Enterprise Azure AI Infrastructure
 
 ### End-to-End Cloud Security Architecture for Azure OpenAI Workloads
 

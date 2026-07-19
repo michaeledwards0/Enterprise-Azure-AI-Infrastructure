@@ -225,7 +225,7 @@ from the ability to modify the environment.
 | Log Analytics Workspace | Centralized analytics destination was deployed and operational | <img width="609" height="345" alt="image" src="https://github.com/user-attachments/assets/973d6a61-5f2b-492e-a710-b8f068892041" /> |
 | AI diagnostic settings | Audit logs, resource logs, and metrics were enabled for Azure AI Services | <img width="676" height="441" alt="image" src="https://github.com/user-attachments/assets/4594f9c0-d304-4ca3-bf70-7c41a37540c9" /> |
 | Azure Activity Logs | Subscription control-plane events were routed to the workspace | <img width="1235" height="841" alt="image" src="https://github.com/user-attachments/assets/a00679a4-5d40-4b28-9f52-7473dde31c6d" /> |
-| Microsoft Entra logs | Identity audit and sign-in telemetry was routed to the workspace | `screenshots/phase-04/10-entra-diagnostic-settings.png` |
+| Microsoft Entra logs | Identity audit and sign-in telemetry was routed to the workspace | <img width="1231" height="309" alt="image" src="https://github.com/user-attachments/assets/b3225f88-ea36-40ac-9fc0-02104896c648" /> |
 
 > Replace the screenshot paths above with your GitHub attachment URLs after uploading the images to the repository issue, pull request, or README editor.
 

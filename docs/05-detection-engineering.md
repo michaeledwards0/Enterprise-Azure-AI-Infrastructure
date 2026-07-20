@@ -193,12 +193,12 @@ The Conditional Access Insights and Reporting workbook was revisited after the L
 | Control | What it proves | Screenshot |
 |---|---|---|
 | Sentinel enabled | The existing workspace was onboarded to Microsoft Sentinel | <img width="988" height="318" alt="image" src="https://github.com/user-attachments/assets/5a373273-8871-4c85-8b1c-268babd27b65" /> |
-| Data connectors and tables | Identity and workload telemetry reached the workspace | <img width="1080" height="852" alt="image" src="https://github.com/user-attachments/assets/b4ca3f09-5062-4d2d-bde1-7d8d59ba94c0" /> |
+| Data connectors and tables | Identity and workload telemetry reached the workspace | <img width="1080" height="852" alt="image" src="https://github.com/user-attachments/assets/b4ca3f09-5062-4d2d-bde1-7d8d59ba94c0" /> <img width="1310" height="705" alt="image" src="https://github.com/user-attachments/assets/0c441981-6173-4e16-911a-7952238ee9ec" />|
 | Conditional Access workbook | The Phase 1 reporting dependency was resolved | <img width="975" height="461" alt="image" src="https://github.com/user-attachments/assets/5f7b46b5-102a-4496-a957-d57721ee081b" /> |
 | Analytics rules | Custom detections were deployed and active | <img width="1294" height="775" alt="image" src="https://github.com/user-attachments/assets/0c3a8b18-110b-4c76-8f3b-b6a1538061b7" /> |
-| Entity mappings | Incidents contain useful investigation entities | `screenshots/phase-05/05-entity-mappings.png` |
-| Automation playbook | Controlled response workflow was attached | `screenshots/phase-05/06-automation-playbook.png` |
-| Triggered incident | End-to-end detection generated an incident | `screenshots/phase-05/07-incident-triggered.png` |
+| Entity mappings | Incidents contain useful investigation entities |<img width="819" height="687" alt="image" src="https://github.com/user-attachments/assets/ac4c7a64-464b-446d-b766-6d42cb444c1a" /> |
+| Automation playbook | Controlled response workflow was attached |<img width="1231" height="616" alt="image" src="https://github.com/user-attachments/assets/237f9388-4249-46ab-83d7-ce31c22951ca" />
+<img width="1231" height="616" alt="image" src="https://github.com/user-attachments/assets/86a4ccf3-c621-4c0d-a472-976c297a2b4c" /> |
 
 ---
 

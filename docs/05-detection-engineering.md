@@ -197,8 +197,7 @@ The Conditional Access Insights and Reporting workbook was revisited after the L
 | Conditional Access workbook | The Phase 1 reporting dependency was resolved | <img width="975" height="461" alt="image" src="https://github.com/user-attachments/assets/5f7b46b5-102a-4496-a957-d57721ee081b" /> |
 | Analytics rules | Custom detections were deployed and active | <img width="1294" height="775" alt="image" src="https://github.com/user-attachments/assets/0c3a8b18-110b-4c76-8f3b-b6a1538061b7" /> |
 | Entity mappings | Incidents contain useful investigation entities |<img width="819" height="687" alt="image" src="https://github.com/user-attachments/assets/ac4c7a64-464b-446d-b766-6d42cb444c1a" /> |
-| Automation playbook | Controlled response workflow was attached |<img width="1231" height="616" alt="image" src="https://github.com/user-attachments/assets/237f9388-4249-46ab-83d7-ce31c22951ca" />
-<img width="1231" height="616" alt="image" src="https://github.com/user-attachments/assets/86a4ccf3-c621-4c0d-a472-976c297a2b4c" /> |
+| Automation playbook | Controlled response workflow was attached |<img width="1231" height="616" alt="image" src="https://github.com/user-attachments/assets/237f9388-4249-46ab-83d7-ce31c22951ca" /> |
 
 ---
 
